@@ -4,8 +4,11 @@ import { useFocusEffect } from 'expo-router';
 import { loadUser, fetchMyBids, fetchPenaltyStatus, confirmWinner, MyBid, DealerUser, DealerPenalty } from '../../lib/api';
 import BidCard from '../../components/BidCard';
 import PenaltyBanner from '../../components/PenaltyBanner';
+import { useTheme, Theme } from '../../lib/theme';
 
 export default function BidsScreen() {
+  const theme = useTheme();
+  const styles = createStyles(theme);
   const [user, setUser] = useState<DealerUser | null>(null);
   const [bids, setBids] = useState<MyBid[]>([]);
   const [penalties, setPenalties] = useState<DealerPenalty[]>([]);
@@ -47,7 +50,7 @@ export default function BidsScreen() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color="#8b5cf6" />
+        <ActivityIndicator color={theme.accent} />
       </View>
     );
   }
@@ -59,7 +62,7 @@ export default function BidsScreen() {
         keyExtractor={(b) => String(b.id)}
         contentContainerStyle={{ padding: 16 }}
         ListHeaderComponent={<PenaltyBanner penalties={penalties} />}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor="#8b5cf6" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={theme.accent} />}
         ListEmptyComponent={<Text style={styles.empty}>아직 입찰한 물건이 없습니다.</Text>}
         renderItem={({ item: bid }) => (
           <View>
@@ -78,10 +81,10 @@ export default function BidsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f0f0f' },
-  center: { flex: 1, backgroundColor: '#0f0f0f', alignItems: 'center', justifyContent: 'center' },
-  empty: { color: '#666', textAlign: 'center', marginTop: 60, fontSize: 13 },
-  confirmRow: { backgroundColor: '#1c1c1e', borderRadius: 12, padding: 10, marginTop: -4, marginBottom: 10, borderWidth: 1, borderColor: '#8b5cf6' },
-  confirmText: { color: '#a78bfa', fontWeight: '700', fontSize: 12, textAlign: 'center' },
+const createStyles = (theme: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.bg },
+  center: { flex: 1, backgroundColor: theme.bg, alignItems: 'center', justifyContent: 'center' },
+  empty: { color: theme.textFaint, textAlign: 'center', marginTop: 60, fontSize: 13 },
+  confirmRow: { backgroundColor: theme.card, borderRadius: 12, padding: 10, marginTop: -4, marginBottom: 10, borderWidth: 1, borderColor: theme.accent },
+  confirmText: { color: theme.accentSoft, fontWeight: '700', fontSize: 12, textAlign: 'center' },
 });

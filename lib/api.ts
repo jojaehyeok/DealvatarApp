@@ -87,3 +87,53 @@ export function confirmWinner(storeItemId: number, dealerId: number) {
     body: JSON.stringify({ dealerId }),
   });
 }
+
+export interface StoreItem {
+  id: number;
+  carNumber: string;
+  titleKo: string;
+  titleEn?: string;
+  trim?: string;
+  year?: number;
+  mileage?: number;
+  fuel?: string;
+  displacement?: string;
+  transmission?: string;
+  colorKo?: string;
+  category?: string;
+  region?: string;
+  accident?: boolean;
+  priceKRW: number;
+  photos: Record<string, string[]>;
+  specs?: { label: string; value: string }[];
+  options?: string[];
+  status: string;
+  auctionEndAt: string | null;
+}
+
+export interface ItemBid {
+  id: number;
+  dealerName: string;
+  amount: number;
+  createdAt: string;
+}
+
+export async function fetchActiveListings(): Promise<StoreItem[]> {
+  const data: StoreItem[] = await request('/admin/store-items');
+  return Array.isArray(data) ? data.filter((i) => i.status === 'active') : [];
+}
+
+export function fetchStoreItem(id: number): Promise<StoreItem> {
+  return request(`/admin/store-items/${id}`);
+}
+
+export function fetchItemBids(id: number): Promise<ItemBid[]> {
+  return request(`/external/store-items/${id}/bids`);
+}
+
+export function submitBid(storeItemId: number, dealerId: number, dealerName: string, amount: number) {
+  return request(`/external/store-items/${storeItemId}/bid`, {
+    method: 'POST',
+    body: JSON.stringify({ dealerId, dealerName, amount }),
+  });
+}

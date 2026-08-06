@@ -1,20 +1,23 @@
 import { Tabs } from 'expo-router';
 import { Text } from 'react-native';
+import { useTheme } from '../../lib/theme';
 
 function TabIcon({ emoji, focused }: { emoji: string; focused: boolean }) {
   return <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.4 }}>{emoji}</Text>;
 }
 
 export default function TabsLayout() {
+  const theme = useTheme();
+
   return (
     <Tabs
       screenOptions={{
-        headerStyle: { backgroundColor: '#0f0f0f' },
-        headerTintColor: '#fff',
+        headerStyle: { backgroundColor: theme.bg },
+        headerTintColor: theme.text,
         headerTitleStyle: { fontWeight: '800' },
-        tabBarStyle: { backgroundColor: '#0f0f0f', borderTopColor: '#222' },
-        tabBarActiveTintColor: '#8b5cf6',
-        tabBarInactiveTintColor: '#666',
+        tabBarStyle: { backgroundColor: theme.bg, borderTopColor: theme.divider },
+        tabBarActiveTintColor: theme.accent,
+        tabBarInactiveTintColor: theme.textSub,
       }}
     >
       <Tabs.Screen

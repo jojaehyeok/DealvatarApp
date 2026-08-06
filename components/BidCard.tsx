@@ -1,5 +1,6 @@
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { MyBid } from '../lib/api';
+import { useTheme, Theme } from '../lib/theme';
 
 function fmtWon(n?: number) {
   if (!n) return '-';
@@ -16,6 +17,8 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export default function BidCard({ bid, onPress }: { bid: MyBid; onPress?: () => void }) {
+  const theme = useTheme();
+  const styles = createStyles(theme);
   const item = bid.item;
   const thumb = item?.photos ? Object.values(item.photos).flat()[0] : undefined;
 
@@ -43,21 +46,21 @@ export default function BidCard({ bid, onPress }: { bid: MyBid; onPress?: () => 
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (theme: Theme) => StyleSheet.create({
   card: {
-    flexDirection: 'row', backgroundColor: '#1c1c1e', borderRadius: 16, padding: 12, marginBottom: 10,
-    borderWidth: 1, borderColor: '#2a2a2c',
+    flexDirection: 'row', backgroundColor: theme.card, borderRadius: 16, padding: 12, marginBottom: 10,
+    borderWidth: 1, borderColor: theme.cardBorder,
   },
-  thumbBox: { width: 72, height: 72, borderRadius: 12, backgroundColor: '#2a2a2c', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  thumbBox: { width: 72, height: 72, borderRadius: 12, backgroundColor: theme.inputBg, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   thumb: { width: '100%', height: '100%' },
   thumbPlaceholder: { fontSize: 28 },
   info: { flex: 1, marginLeft: 12, justifyContent: 'space-between' },
   rowTop: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  title: { color: '#fff', fontWeight: '800', fontSize: 14, flexShrink: 1 },
-  winningTag: { backgroundColor: '#8b5cf6', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
+  title: { color: theme.text, fontWeight: '800', fontSize: 14, flexShrink: 1 },
+  winningTag: { backgroundColor: theme.accent, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
   winningTagText: { color: '#fff', fontSize: 10, fontWeight: '800' },
-  carNumber: { color: '#8b8b8b', fontSize: 12, marginTop: 2 },
+  carNumber: { color: theme.textSub, fontSize: 12, marginTop: 2 },
   rowBottom: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8, alignItems: 'center' },
-  amount: { color: '#a78bfa', fontWeight: '800', fontSize: 13 },
-  status: { color: '#8b8b8b', fontSize: 11, fontWeight: '700' },
+  amount: { color: theme.accentSoft, fontWeight: '800', fontSize: 13 },
+  status: { color: theme.textSub, fontSize: 11, fontWeight: '700' },
 });

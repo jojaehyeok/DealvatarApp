@@ -1,7 +1,10 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { DealerPenalty } from '../lib/api';
+import { useTheme, Theme } from '../lib/theme';
 
 export default function PenaltyBanner({ penalties }: { penalties: DealerPenalty[] }) {
+  const theme = useTheme();
+  const styles = createStyles(theme);
   if (!penalties.length) return null;
   const p = penalties[0];
   return (
@@ -13,9 +16,9 @@ export default function PenaltyBanner({ penalties }: { penalties: DealerPenalty[
   );
 }
 
-const styles = StyleSheet.create({
-  box: { backgroundColor: '#3a1414', borderRadius: 14, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: '#5c2020' },
-  title: { color: '#ff6b6b', fontWeight: '800', fontSize: 13 },
-  desc: { color: '#e0a0a0', fontSize: 12, marginTop: 4 },
-  until: { color: '#ff9b9b', fontSize: 11, marginTop: 6, fontWeight: '700' },
+const createStyles = (theme: Theme) => StyleSheet.create({
+  box: { backgroundColor: theme.dangerBg, borderRadius: 14, padding: 14, marginBottom: 12, borderWidth: 1, borderColor: theme.dangerBorder },
+  title: { color: theme.danger, fontWeight: '800', fontSize: 13 },
+  desc: { color: theme.textSub, fontSize: 12, marginTop: 4 },
+  until: { color: theme.danger, fontSize: 11, marginTop: 6, fontWeight: '700' },
 });

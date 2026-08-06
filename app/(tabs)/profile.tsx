@@ -3,8 +3,11 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'rea
 import { useFocusEffect, useRouter } from 'expo-router';
 import { loadUser, clearUser, fetchPenaltyStatus, DealerUser, DealerPenalty } from '../../lib/api';
 import PenaltyBanner from '../../components/PenaltyBanner';
+import { useTheme, Theme } from '../../lib/theme';
 
 export default function ProfileScreen() {
+  const theme = useTheme();
+  const styles = createStyles(theme);
   const router = useRouter();
   const [user, setUser] = useState<DealerUser | null>(null);
   const [penalties, setPenalties] = useState<DealerPenalty[]>([]);
@@ -34,7 +37,7 @@ export default function ProfileScreen() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color="#8b5cf6" />
+        <ActivityIndicator color={theme.accent} />
       </View>
     );
   }
@@ -65,17 +68,17 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f0f0f', padding: 20 },
-  center: { flex: 1, backgroundColor: '#0f0f0f', alignItems: 'center', justifyContent: 'center' },
+const createStyles = (theme: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.bg, padding: 20 },
+  center: { flex: 1, backgroundColor: theme.bg, alignItems: 'center', justifyContent: 'center' },
   profileBox: { alignItems: 'center', marginVertical: 24 },
-  avatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: '#8b5cf6', alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
+  avatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: theme.accent, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
   avatarText: { color: '#fff', fontSize: 24, fontWeight: '900' },
-  name: { color: '#fff', fontSize: 17, fontWeight: '800' },
-  email: { color: '#8b8b8b', fontSize: 13, marginTop: 2 },
-  ruleBox: { backgroundColor: '#1c1c1e', borderRadius: 14, padding: 16, marginTop: 8, borderWidth: 1, borderColor: '#2a2a2c' },
-  ruleTitle: { color: '#fff', fontWeight: '800', fontSize: 13, marginBottom: 8 },
-  ruleItem: { color: '#8b8b8b', fontSize: 12, marginTop: 4, lineHeight: 18 },
-  logoutBtn: { marginTop: 24, paddingVertical: 14, alignItems: 'center', borderRadius: 14, borderWidth: 1, borderColor: '#333' },
-  logoutText: { color: '#ff6b6b', fontWeight: '700', fontSize: 13 },
+  name: { color: theme.text, fontSize: 17, fontWeight: '800' },
+  email: { color: theme.textSub, fontSize: 13, marginTop: 2 },
+  ruleBox: { backgroundColor: theme.card, borderRadius: 14, padding: 16, marginTop: 8, borderWidth: 1, borderColor: theme.cardBorder },
+  ruleTitle: { color: theme.text, fontWeight: '800', fontSize: 13, marginBottom: 8 },
+  ruleItem: { color: theme.textSub, fontSize: 12, marginTop: 4, lineHeight: 18 },
+  logoutBtn: { marginTop: 24, paddingVertical: 14, alignItems: 'center', borderRadius: 14, borderWidth: 1, borderColor: theme.cardBorder },
+  logoutText: { color: theme.danger, fontWeight: '700', fontSize: 13 },
 });

@@ -3,8 +3,11 @@ import { View, Text, FlatList, StyleSheet, RefreshControl, ActivityIndicator } f
 import { useFocusEffect } from 'expo-router';
 import { loadUser, fetchMyBids, MyBid } from '../../lib/api';
 import BidCard from '../../components/BidCard';
+import { useTheme, Theme } from '../../lib/theme';
 
 export default function WonScreen() {
+  const theme = useTheme();
+  const styles = createStyles(theme);
   const [bids, setBids] = useState<MyBid[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -28,7 +31,7 @@ export default function WonScreen() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color="#8b5cf6" />
+        <ActivityIndicator color={theme.accent} />
       </View>
     );
   }
@@ -39,7 +42,7 @@ export default function WonScreen() {
         data={bids}
         keyExtractor={(b) => String(b.id)}
         contentContainerStyle={{ padding: 16 }}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor="#8b5cf6" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={theme.accent} />}
         ListEmptyComponent={<Text style={styles.empty}>아직 낙찰한 물건이 없습니다.</Text>}
         renderItem={({ item: bid }) => <BidCard bid={bid} />}
       />
@@ -47,8 +50,8 @@ export default function WonScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f0f0f' },
-  center: { flex: 1, backgroundColor: '#0f0f0f', alignItems: 'center', justifyContent: 'center' },
-  empty: { color: '#666', textAlign: 'center', marginTop: 60, fontSize: 13 },
+const createStyles = (theme: Theme) => StyleSheet.create({
+  container: { flex: 1, backgroundColor: theme.bg },
+  center: { flex: 1, backgroundColor: theme.bg, alignItems: 'center', justifyContent: 'center' },
+  empty: { color: theme.textFaint, textAlign: 'center', marginTop: 60, fontSize: 13 },
 });

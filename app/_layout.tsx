@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { View, ActivityIndicator } from 'react-native';
 import { loadUser, DealerUser } from '../lib/api';
+import { useTheme } from '../lib/theme';
 
 export default function RootLayout() {
+  const theme = useTheme();
   const [user, setUser] = useState<DealerUser | null | undefined>(undefined);
   const router = useRouter();
   const segments = useSegments();
@@ -21,11 +23,11 @@ export default function RootLayout() {
 
   if (user === undefined) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#0f0f0f' }}>
-        <ActivityIndicator color="#8b5cf6" />
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.bg }}>
+        <ActivityIndicator color={theme.accent} />
       </View>
     );
   }
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.bg } }} />;
 }
