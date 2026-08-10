@@ -119,12 +119,12 @@ export interface ItemBid {
 }
 
 export async function fetchActiveListings(): Promise<StoreItem[]> {
-  const data: StoreItem[] = await request('/admin/store-items');
-  return Array.isArray(data) ? data.filter((i) => i.status === 'active') : [];
+  const data: StoreItem[] = await request('/external/store-items');
+  return Array.isArray(data) ? data : [];
 }
 
 export function fetchStoreItem(id: number): Promise<StoreItem> {
-  return request(`/admin/store-items/${id}`);
+  return request(`/external/store-items/${id}`);
 }
 
 export function fetchItemBids(id: number): Promise<ItemBid[]> {

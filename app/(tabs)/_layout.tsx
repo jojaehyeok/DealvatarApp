@@ -21,6 +21,14 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen
+        name="market"
+        options={{
+          title: '경매장',
+          headerShown: false,
+          tabBarIcon: ({ focused }) => <TabIcon emoji="🏛️" focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
         name="index"
         options={{
           title: '입찰한 물건',
