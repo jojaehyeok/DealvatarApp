@@ -9,6 +9,7 @@ import {
   DealerUser, PartnerInspectionRequest,
 } from '../../lib/api';
 import VisitScheduleModal from '../../components/VisitScheduleModal';
+import PlaceSearchModal from '../../components/PlaceSearchModal';
 import { useTheme, Theme } from '../../lib/theme';
 
 const STATUS_LABEL: Record<string, string> = {
@@ -32,6 +33,7 @@ export default function PartnerInspectionScreen() {
   const [listingUrl, setListingUrl] = useState('');
   const [preferredDateTime, setPreferredDateTime] = useState('');
   const [dateModalOpen, setDateModalOpen] = useState(false);
+  const [placeModalOpen, setPlaceModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const load = useCallback(async () => {
@@ -98,7 +100,11 @@ export default function PartnerInspectionScreen() {
 
         <TextInput style={styles.input} placeholder="차량번호 (필수)" placeholderTextColor={theme.textFaint} value={carNumber} onChangeText={setCarNumber} />
         <TextInput style={styles.input} placeholder="차종 (선택)" placeholderTextColor={theme.textFaint} value={carModel} onChangeText={setCarModel} />
-        <TextInput style={styles.input} placeholder="방문 주소 (필수)" placeholderTextColor={theme.textFaint} value={address} onChangeText={setAddress} />
+        <TouchableOpacity style={styles.input} onPress={() => setPlaceModalOpen(true)}>
+          <Text style={{ color: address ? theme.text : theme.textFaint, fontSize: 15 }} numberOfLines={1}>
+            {address || '방문 주소 검색 (필수)'}
+          </Text>
+        </TouchableOpacity>
         <TextInput style={styles.input} placeholder="상세주소 (선택)" placeholderTextColor={theme.textFaint} value={detailAddress} onChangeText={setDetailAddress} />
         <TextInput style={styles.input} placeholder="매물 링크 (선택 · 엔카/당근 등)" placeholderTextColor={theme.textFaint} value={listingUrl} onChangeText={setListingUrl} autoCapitalize="none" />
 
@@ -138,6 +144,11 @@ export default function PartnerInspectionScreen() {
         submitting={false}
         onClose={() => setDateModalOpen(false)}
         onConfirm={(iso) => { setPreferredDateTime(iso); setDateModalOpen(false); }}
+      />
+      <PlaceSearchModal
+        visible={placeModalOpen}
+        onClose={() => setPlaceModalOpen(false)}
+        onSelect={(picked) => setAddress(picked)}
       />
     </KeyboardAvoidingView>
   );

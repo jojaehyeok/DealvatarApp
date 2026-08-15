@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, RefreshControl, ActivityIndicator, ScrollView, TouchableOpacity, Modal, Pressable, Alert } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import {
   fetchActiveListings, fetchMyBids, fetchPenaltyStatus, loadUser, confirmWinner, scheduleVisit, requestPriceAdjustment,
@@ -25,7 +26,8 @@ const CATEGORIES: { key: Category; label: string }[] = [
 
 export default function MarketScreen() {
   const theme = useTheme();
-  const styles = createStyles(theme);
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(theme, insets.top);
   const router = useRouter();
   const [user, setUser] = useState<DealerUser | null>(null);
   const [items, setItems] = useState<StoreItem[]>([]);
@@ -261,11 +263,11 @@ export default function MarketScreen() {
   );
 }
 
-const createStyles = (theme: Theme) => StyleSheet.create({
+const createStyles = (theme: Theme, safeTop: number) => StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.bg },
   center: { flex: 1, backgroundColor: theme.bg, alignItems: 'center', justifyContent: 'center' },
   empty: { color: theme.textFaint, textAlign: 'center', marginTop: 60, fontSize: 13 },
-  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 14, paddingBottom: 6 },
+  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: safeTop + 10, paddingBottom: 6 },
   topBarTitle: { color: theme.text, fontSize: 20, fontWeight: '900' },
   filterIconBtn: { padding: 6 },
   filterIcon: { fontSize: 20 },
