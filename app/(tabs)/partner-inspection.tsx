@@ -3,9 +3,9 @@ import {
   View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, FlatList,
   Alert, ActivityIndicator, KeyboardAvoidingView, Platform,
 } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import {
-  loadUser, submitPartnerInspection, fetchMyPartnerInspections,
+  loadUser, fetchMyPartnerInspections, PARTNER_INSPECTION_PRICING,
   DealerUser, PartnerInspectionRequest,
 } from '../../lib/api';
 import VisitScheduleModal from '../../components/VisitScheduleModal';
@@ -22,6 +22,7 @@ const STATUS_LABEL: Record<string, string> = {
 export default function PartnerInspectionScreen() {
   const theme = useTheme();
   const styles = createStyles(theme);
+  const router = useRouter();
   const [user, setUser] = useState<DealerUser | null>(null);
   const [requests, setRequests] = useState<PartnerInspectionRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,9 +34,9 @@ export default function PartnerInspectionScreen() {
   const [listingUrl, setListingUrl] = useState('');
   const [preferredDateTime, setPreferredDateTime] = useState('');
   const [additionalMemo, setAdditionalMemo] = useState('');
+  const [carOrigin, setCarOrigin] = useState<'DOMESTIC' | 'IMPORTED'>('DOMESTIC');
   const [dateModalOpen, setDateModalOpen] = useState(false);
   const [placeModalOpen, setPlaceModalOpen] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
 
   const load = useCallback(async () => {
     const u = await loadUser();
@@ -55,7 +56,7 @@ export default function PartnerInspectionScreen() {
     month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit',
   });
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!user?.phone) {
       Alert.alert('알림', '계정에 등록된 연락처가 없어요. 마이 탭에서 확인해주세요.');
       return;
@@ -64,26 +65,21 @@ export default function PartnerInspectionScreen() {
       Alert.alert('알림', '차량번호, 주소, 방문 희망일시는 필수예요.');
       return;
     }
-    setSubmitting(true);
-    try {
-      await submitPartnerInspection({
+    router.push({
+      pathname: '/(tabs)/toss-checkout',
+      params: {
         carNumber: carNumber.trim(),
-        carModel: carModel.trim() || undefined,
-        contact: user.phone,
+        carModel: carModel.trim(),
         address: address.trim(),
-        detailAddress: detailAddress.trim() || undefined,
+        detailAddress: detailAddress.trim(),
         preferredDateTime,
-        listingUrl: listingUrl.trim() || undefined,
-        additionalMemo: additionalMemo.trim() || undefined,
-      });
-      Alert.alert('신청 완료', '제휴검차 신청이 접수되었습니다.');
-      setCarNumber(''); setCarModel(''); setAddress(''); setDetailAddress(''); setListingUrl(''); setPreferredDateTime(''); setAdditionalMemo('');
-      load();
-    } catch (e: any) {
-      Alert.alert('신청 실패', e.message);
-    } finally {
-      setSubmitting(false);
-    }
+        listingUrl: listingUrl.trim(),
+        additionalMemo: additionalMemo.trim(),
+        carOrigin,
+        contact: user.phone,
+        userId: String(user.id),
+      },
+    });
   };
 
   if (loading) {
@@ -123,8 +119,26 @@ export default function PartnerInspectionScreen() {
           multiline
         />
 
-        <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={submitting}>
-          {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitBtnText}>제휴검차 신청하기</Text>}
+        <Text style={styles.originLabel}>차량 구분</Text>
+        <View style={styles.originRow}>
+          {(Object.keys(PARTNER_INSPECTION_PRICING) as Array<'DOMESTIC' | 'IMPORTED'>).map((key) => {
+            const active = carOrigin === key;
+            return (
+              <TouchableOpacity
+                key={key}
+                style={[styles.originChip, active && styles.originChipActive]}
+                onPress={() => setCarOrigin(key)}
+              >
+                <Text style={[styles.originChipText, active && styles.originChipTextActive]}>
+                  {PARTNER_INSPECTION_PRICING[key].label} · {PARTNER_INSPECTION_PRICING[key].amount.toLocaleString()}원
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit}>
+          <Text style={styles.submitBtnText}>{PARTNER_INSPECTION_PRICING[carOrigin].amount.toLocaleString()}원 결제하고 신청하기</Text>
         </TouchableOpacity>
 
         <Text style={[styles.sectionTitle, { marginTop: 32 }]}>내 신청 내역</Text>
@@ -174,6 +188,12 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     justifyContent: 'center',
   },
   textarea: { minHeight: 80, textAlignVertical: 'top' },
+  originLabel: { color: theme.textFaint, fontSize: 11, fontWeight: '700', marginBottom: 8, textTransform: 'uppercase' },
+  originRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
+  originChip: { flex: 1, paddingVertical: 12, borderRadius: 12, backgroundColor: theme.inputBg, borderWidth: 1, borderColor: theme.cardBorder, alignItems: 'center' },
+  originChipActive: { backgroundColor: theme.accent, borderColor: theme.accent },
+  originChipText: { color: theme.text, fontWeight: '700', fontSize: 13 },
+  originChipTextActive: { color: '#fff' },
   submitBtn: { backgroundColor: theme.accent, borderRadius: 14, paddingVertical: 15, alignItems: 'center', marginTop: 6 },
   submitBtnText: { color: '#fff', fontWeight: '800', fontSize: 14 },
   empty: { color: theme.textFaint, fontSize: 12, textAlign: 'center', paddingVertical: 20 },

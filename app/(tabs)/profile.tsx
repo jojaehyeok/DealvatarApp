@@ -1,8 +1,8 @@
 import { useCallback, useState } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, Image, TextInput, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { loadUser, saveUser, clearUser, fetchPenaltyStatus, uploadFile, updateProfileImage, DealerUser, DealerPenalty } from '../../lib/api';
+import { loadUser, saveUser, clearUser, fetchPenaltyStatus, uploadFile, updateProfileImage, updatePhone, DealerUser, DealerPenalty } from '../../lib/api';
 import PenaltyBanner from '../../components/PenaltyBanner';
 import { useTheme, Theme } from '../../lib/theme';
 
@@ -14,12 +14,15 @@ export default function ProfileScreen() {
   const [penalties, setPenalties] = useState<DealerPenalty[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [phoneInput, setPhoneInput] = useState('');
+  const [savingPhone, setSavingPhone] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       (async () => {
         const u = await loadUser();
         setUser(u);
+        setPhoneInput(u?.phone ?? '');
         if (u) {
           try {
             const status = await fetchPenaltyStatus(u.id);
@@ -34,6 +37,27 @@ export default function ProfileScreen() {
   const handleLogout = async () => {
     await clearUser();
     router.replace('/login');
+  };
+
+  const handleSavePhone = async () => {
+    if (!user) return;
+    const digits = phoneInput.replace(/[^0-9]/g, '');
+    if (digits.length < 10) {
+      Alert.alert('알림', '연락처를 올바르게 입력해주세요.');
+      return;
+    }
+    setSavingPhone(true);
+    try {
+      await updatePhone(user.id, digits);
+      const updated = { ...user, phone: digits };
+      setUser(updated);
+      await saveUser(updated);
+      Alert.alert('저장 완료', '연락처가 저장되었습니다.');
+    } catch (e: any) {
+      Alert.alert('저장 실패', e.message);
+    } finally {
+      setSavingPhone(false);
+    }
   };
 
   const handlePickPhoto = async () => {
@@ -92,6 +116,24 @@ export default function ProfileScreen() {
         <Text style={styles.email}>{user?.email}</Text>
       </View>
 
+      <View style={styles.phoneBox}>
+        <Text style={styles.phoneLabel}>연락처</Text>
+        <View style={styles.phoneRow}>
+          <TextInput
+            style={styles.phoneInput}
+            placeholder="010-0000-0000"
+            placeholderTextColor={theme.textFaint}
+            keyboardType="phone-pad"
+            value={phoneInput}
+            onChangeText={setPhoneInput}
+          />
+          <TouchableOpacity style={styles.phoneSaveBtn} onPress={handleSavePhone} disabled={savingPhone}>
+            {savingPhone ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.phoneSaveBtnText}>저장</Text>}
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.phoneNote}>제휴검차 신청 시 이 연락처로 접수됩니다.</Text>
+      </View>
+
       <PenaltyBanner penalties={penalties} />
 
       <View style={styles.menuBox}>
@@ -133,6 +175,16 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   avatarEditBadgeText: { color: theme.text, fontSize: 10 },
   name: { color: theme.text, fontSize: 17, fontWeight: '800' },
   email: { color: theme.textSub, fontSize: 13, marginTop: 2 },
+  phoneBox: { backgroundColor: theme.card, borderRadius: 14, padding: 16, borderWidth: 1, borderColor: theme.cardBorder },
+  phoneLabel: { color: theme.textFaint, fontSize: 11, fontWeight: '700', marginBottom: 8, textTransform: 'uppercase' },
+  phoneRow: { flexDirection: 'row', gap: 8 },
+  phoneInput: {
+    flex: 1, backgroundColor: theme.inputBg, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10,
+    color: theme.text, fontSize: 14, borderWidth: 1, borderColor: theme.cardBorder,
+  },
+  phoneSaveBtn: { backgroundColor: theme.accent, borderRadius: 10, paddingHorizontal: 16, alignItems: 'center', justifyContent: 'center' },
+  phoneSaveBtnText: { color: '#fff', fontWeight: '800', fontSize: 12 },
+  phoneNote: { color: theme.textFaint, fontSize: 11, marginTop: 8 },
   menuBox: { backgroundColor: theme.card, borderRadius: 14, marginTop: 8, borderWidth: 1, borderColor: theme.cardBorder, overflow: 'hidden' },
   menuRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, paddingHorizontal: 16, gap: 10 },
   menuIcon: { fontSize: 16 },

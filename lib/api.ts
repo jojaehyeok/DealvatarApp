@@ -88,9 +88,23 @@ export interface PartnerInspectionRequest {
   createdAt: string;
 }
 
-// 딜러가 개인적으로 사려는 차량을 카비어 검차에 신청 — 일반 구매동행(/inspection)과 같은
-// 접수 엔드포인트를 쓰되 source로 딜러 신청 건임을 구분한다.
-export function submitPartnerInspection(data: {
+export async function fetchMyPartnerInspections(contact: string): Promise<PartnerInspectionRequest[]> {
+  const data = await request(`/external/request/list?source=${PARTNER_INSPECTION_SOURCE}&contact=${encodeURIComponent(contact)}`);
+  return Array.isArray(data) ? data : [];
+}
+
+// 제휴검차 국산/수입 회원 전용가 — cavior 웹 /inspection의 MEMBER_PRICING과 동일(딜러 전용가).
+export const PARTNER_INSPECTION_PRICING: Record<'DOMESTIC' | 'IMPORTED', { label: string; amount: number }> = {
+  DOMESTIC: { label: '국산차', amount: 88_000 },
+  IMPORTED: { label: '수입차', amount: 110_000 },
+};
+
+// 토스 결제 승인 — 시크릿키가 필요해서 반드시 서버에서 처리(carvior-back의 기존
+// confirm-toss 엔드포인트 재사용, source만 DEALER_PARTNER_INSPECTION으로 덮어씀).
+export function confirmPartnerInspectionToss(data: {
+  paymentKey: string;
+  orderId: string;
+  amount: number;
   carNumber: string;
   carModel?: string;
   contact: string;
@@ -99,16 +113,12 @@ export function submitPartnerInspection(data: {
   preferredDateTime: string;
   listingUrl?: string;
   additionalMemo?: string;
+  carOrigin: 'DOMESTIC' | 'IMPORTED';
 }) {
-  return request('/external/request', {
+  return request('/external/inspection-payments/confirm-toss', {
     method: 'POST',
-    body: JSON.stringify({ ...data, source: PARTNER_INSPECTION_SOURCE, privacyAgreed: true }),
+    body: JSON.stringify({ ...data, source: PARTNER_INSPECTION_SOURCE }),
   });
-}
-
-export async function fetchMyPartnerInspections(contact: string): Promise<PartnerInspectionRequest[]> {
-  const data = await request(`/external/request/list?source=${PARTNER_INSPECTION_SOURCE}&contact=${encodeURIComponent(contact)}`);
-  return Array.isArray(data) ? data : [];
 }
 
 // 딜러 본인이 (가끔) 스마트옥션에 올린 매물 상태 조회 — cavior 웹 마이페이지와 같은 엔드포인트.
@@ -242,6 +252,13 @@ export function updateProfileImage(userId: number, profileImage: string) {
   return request(`/users/${userId}/admin-info`, {
     method: 'PATCH',
     body: JSON.stringify({ profileImage }),
+  });
+}
+
+export function updatePhone(userId: number, phone: string) {
+  return request(`/users/${userId}/admin-info`, {
+    method: 'PATCH',
+    body: JSON.stringify({ phone }),
   });
 }
 

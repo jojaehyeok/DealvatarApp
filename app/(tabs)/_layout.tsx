@@ -49,6 +49,13 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="toss-checkout"
+        options={{
+          title: '결제',
+          href: null, // 제휴검차 신청 폼에서만 진입
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: '마이',
