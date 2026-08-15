@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, Modal, Pressable, TextInput, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, Modal, Pressable, TextInput, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, Theme } from '../lib/theme';
 
@@ -59,44 +59,41 @@ export default function PlaceSearchModal({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <Pressable style={styles.overlay} onPress={onClose}>
-          <Pressable onPress={() => {}} style={styles.sheet}>
-            <Text style={styles.title}>장소 검색</Text>
-            <View style={styles.searchRow}>
-              <TextInput
-                style={styles.input}
-                placeholder="장소명, 건물명, 주소로 검색"
-                placeholderTextColor={theme.textFaint}
-                value={query}
-                onChangeText={setQuery}
-                onSubmitEditing={search}
-                returnKeyType="search"
-                autoFocus
-              />
-              <TouchableOpacity style={styles.searchBtn} onPress={search} disabled={searching}>
-                {searching ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.searchBtnText}>검색</Text>}
-              </TouchableOpacity>
-            </View>
-
-            <FlatList
-              data={results}
-              keyExtractor={(p, i) => `${p.place_name}-${i}`}
-              style={{ maxHeight: 300 }}
-              keyboardShouldPersistTaps="handled"
-              ListEmptyComponent={
-                searched && !searching ? <Text style={styles.empty}>검색 결과가 없습니다.</Text> : null
-              }
-              renderItem={({ item }) => (
-                <TouchableOpacity style={styles.resultRow} onPress={() => handleSelect(item)}>
-                  <Text style={styles.resultName}>{item.place_name}</Text>
-                  <Text style={styles.resultAddress}>{item.road_address_name || item.address_name}</Text>
-                </TouchableOpacity>
-              )}
+      <Pressable style={styles.overlay} onPress={onClose}>
+        <Pressable onPress={() => {}} style={styles.sheet}>
+          <Text style={styles.title}>장소 검색</Text>
+          <View style={styles.searchRow}>
+            <TextInput
+              style={styles.input}
+              placeholder="장소명, 건물명, 주소로 검색"
+              placeholderTextColor={theme.textFaint}
+              value={query}
+              onChangeText={setQuery}
+              onSubmitEditing={search}
+              returnKeyType="search"
             />
-          </Pressable>
+            <TouchableOpacity style={styles.searchBtn} onPress={search} disabled={searching}>
+              {searching ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.searchBtnText}>검색</Text>}
+            </TouchableOpacity>
+          </View>
+
+          <FlatList
+            data={results}
+            keyExtractor={(p, i) => `${p.place_name}-${i}`}
+            style={{ maxHeight: 300 }}
+            keyboardShouldPersistTaps="handled"
+            ListEmptyComponent={
+              searched && !searching ? <Text style={styles.empty}>검색 결과가 없습니다.</Text> : null
+            }
+            renderItem={({ item }) => (
+              <TouchableOpacity style={styles.resultRow} onPress={() => handleSelect(item)}>
+                <Text style={styles.resultName}>{item.place_name}</Text>
+                <Text style={styles.resultAddress}>{item.road_address_name || item.address_name}</Text>
+              </TouchableOpacity>
+            )}
+          />
         </Pressable>
-      </KeyboardAvoidingView>
+      </Pressable>
     </Modal>
   );
 }
