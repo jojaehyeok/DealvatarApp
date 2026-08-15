@@ -32,6 +32,7 @@ export default function PartnerInspectionScreen() {
   const [detailAddress, setDetailAddress] = useState('');
   const [listingUrl, setListingUrl] = useState('');
   const [preferredDateTime, setPreferredDateTime] = useState('');
+  const [additionalMemo, setAdditionalMemo] = useState('');
   const [dateModalOpen, setDateModalOpen] = useState(false);
   const [placeModalOpen, setPlaceModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -73,9 +74,10 @@ export default function PartnerInspectionScreen() {
         detailAddress: detailAddress.trim() || undefined,
         preferredDateTime,
         listingUrl: listingUrl.trim() || undefined,
+        additionalMemo: additionalMemo.trim() || undefined,
       });
       Alert.alert('신청 완료', '제휴검차 신청이 접수되었습니다.');
-      setCarNumber(''); setCarModel(''); setAddress(''); setDetailAddress(''); setListingUrl(''); setPreferredDateTime('');
+      setCarNumber(''); setCarModel(''); setAddress(''); setDetailAddress(''); setListingUrl(''); setPreferredDateTime(''); setAdditionalMemo('');
       load();
     } catch (e: any) {
       Alert.alert('신청 실패', e.message);
@@ -93,26 +95,33 @@ export default function PartnerInspectionScreen() {
   }
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView style={styles.container} contentContainerStyle={{ padding: 16 }}>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <ScrollView style={styles.container} contentContainerStyle={{ padding: 16 }} keyboardShouldPersistTaps="handled">
         <Text style={styles.sectionTitle}>제휴검차 신청</Text>
         <Text style={styles.sectionSub}>딜러님이 개인적으로 매입을 검토 중인 차량을 카비어 평가사가 직접 검차해드려요</Text>
 
         <TextInput style={styles.input} placeholder="차량번호 (필수)" placeholderTextColor={theme.textFaint} value={carNumber} onChangeText={setCarNumber} />
-        <TextInput style={styles.input} placeholder="차종 (선택)" placeholderTextColor={theme.textFaint} value={carModel} onChangeText={setCarModel} />
+        <TextInput style={styles.input} placeholder="차량명 (선택)" placeholderTextColor={theme.textFaint} value={carModel} onChangeText={setCarModel} />
         <TouchableOpacity style={styles.input} onPress={() => setPlaceModalOpen(true)}>
           <Text style={{ color: address ? theme.text : theme.textFaint, fontSize: 15 }} numberOfLines={1}>
             {address || '방문 주소 검색 (필수)'}
           </Text>
         </TouchableOpacity>
         <TextInput style={styles.input} placeholder="상세주소 (선택)" placeholderTextColor={theme.textFaint} value={detailAddress} onChangeText={setDetailAddress} />
-        <TextInput style={styles.input} placeholder="매물 링크 (선택 · 엔카/당근 등)" placeholderTextColor={theme.textFaint} value={listingUrl} onChangeText={setListingUrl} autoCapitalize="none" />
-
         <TouchableOpacity style={styles.input} onPress={() => setDateModalOpen(true)}>
           <Text style={{ color: preferredDateTime ? theme.text : theme.textFaint, fontSize: 15 }}>
             {preferredDateTime ? fmtDateTime(preferredDateTime) : '방문 희망일시 선택 (필수)'}
           </Text>
         </TouchableOpacity>
+        <TextInput style={styles.input} placeholder="매물 링크 (선택 · 엔카/당근 등)" placeholderTextColor={theme.textFaint} value={listingUrl} onChangeText={setListingUrl} autoCapitalize="none" />
+        <TextInput
+          style={[styles.input, styles.textarea]}
+          placeholder="추가 요청사항 (선택)"
+          placeholderTextColor={theme.textFaint}
+          value={additionalMemo}
+          onChangeText={setAdditionalMemo}
+          multiline
+        />
 
         <TouchableOpacity style={styles.submitBtn} onPress={handleSubmit} disabled={submitting}>
           {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitBtnText}>제휴검차 신청하기</Text>}
@@ -164,6 +173,7 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     color: theme.text, fontSize: 15, marginBottom: 10, borderWidth: 1, borderColor: theme.cardBorder,
     justifyContent: 'center',
   },
+  textarea: { minHeight: 80, textAlignVertical: 'top' },
   submitBtn: { backgroundColor: theme.accent, borderRadius: 14, paddingVertical: 15, alignItems: 'center', marginTop: 6 },
   submitBtnText: { color: '#fff', fontWeight: '800', fontSize: 14 },
   empty: { color: theme.textFaint, fontSize: 12, textAlign: 'center', paddingVertical: 20 },

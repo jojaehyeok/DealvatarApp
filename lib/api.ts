@@ -98,6 +98,7 @@ export function submitPartnerInspection(data: {
   detailAddress?: string;
   preferredDateTime: string;
   listingUrl?: string;
+  additionalMemo?: string;
 }) {
   return request('/external/request', {
     method: 'POST',
