@@ -153,7 +153,7 @@ export default function MarketScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipScroll} contentContainerStyle={styles.chipRow}>
         {CATEGORIES.map((c) => {
           const count = c.key === 'bidding' ? biddingBids.length : c.key === 'urgent' ? urgentCount : c.key === 'won' ? wonBids.length : items.length;
           const active = category === c.key;
@@ -271,8 +271,9 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   filterIcon: { fontSize: 20 },
   filterBadge: { position: 'absolute', top: 0, right: 0, backgroundColor: theme.accent, borderRadius: 8, minWidth: 16, height: 16, alignItems: 'center', justifyContent: 'center' },
   filterBadgeText: { color: '#fff', fontSize: 9, fontWeight: '800' },
-  chipRow: { paddingHorizontal: 16, gap: 8, paddingBottom: 12 },
-  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18, backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder },
+  chipScroll: { flexGrow: 0, flexShrink: 0, height: 56 },
+  chipRow: { paddingHorizontal: 16, gap: 8, paddingBottom: 12, alignItems: 'flex-start' },
+  chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 18, backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder, alignSelf: 'flex-start' },
   chipActive: { backgroundColor: theme.accent, borderColor: theme.accent },
   chipUrgentActive: { backgroundColor: theme.danger, borderColor: theme.danger },
   chipText: { color: theme.textSub, fontWeight: '700', fontSize: 13 },
