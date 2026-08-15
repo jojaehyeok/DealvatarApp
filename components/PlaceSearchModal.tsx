@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { View, Text, Modal, Pressable, TextInput, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, Modal, Pressable, TextInput, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, Theme } from '../lib/theme';
 
 // 카카오 로컬 API 키워드 검색 — ChavatarApp(KakaoMapScreen.tsx)과 동일한 키 재사용.
@@ -23,7 +24,8 @@ export default function PlaceSearchModal({
   onSelect: (address: string) => void;
 }) {
   const theme = useTheme();
-  const styles = createStyles(theme);
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(theme, insets.bottom);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<KakaoPlace[]>([]);
   const [searching, setSearching] = useState(false);
@@ -57,48 +59,51 @@ export default function PlaceSearchModal({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable onPress={() => {}} style={styles.sheet}>
-          <Text style={styles.title}>장소 검색</Text>
-          <View style={styles.searchRow}>
-            <TextInput
-              style={styles.input}
-              placeholder="장소명, 건물명, 주소로 검색"
-              placeholderTextColor={theme.textFaint}
-              value={query}
-              onChangeText={setQuery}
-              onSubmitEditing={search}
-              returnKeyType="search"
-              autoFocus
-            />
-            <TouchableOpacity style={styles.searchBtn} onPress={search} disabled={searching}>
-              {searching ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.searchBtnText}>검색</Text>}
-            </TouchableOpacity>
-          </View>
-
-          <FlatList
-            data={results}
-            keyExtractor={(p, i) => `${p.place_name}-${i}`}
-            style={{ maxHeight: 360 }}
-            ListEmptyComponent={
-              searched && !searching ? <Text style={styles.empty}>검색 결과가 없습니다.</Text> : null
-            }
-            renderItem={({ item }) => (
-              <TouchableOpacity style={styles.resultRow} onPress={() => handleSelect(item)}>
-                <Text style={styles.resultName}>{item.place_name}</Text>
-                <Text style={styles.resultAddress}>{item.road_address_name || item.address_name}</Text>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <Pressable style={styles.overlay} onPress={onClose}>
+          <Pressable onPress={() => {}} style={styles.sheet}>
+            <Text style={styles.title}>장소 검색</Text>
+            <View style={styles.searchRow}>
+              <TextInput
+                style={styles.input}
+                placeholder="장소명, 건물명, 주소로 검색"
+                placeholderTextColor={theme.textFaint}
+                value={query}
+                onChangeText={setQuery}
+                onSubmitEditing={search}
+                returnKeyType="search"
+                autoFocus
+              />
+              <TouchableOpacity style={styles.searchBtn} onPress={search} disabled={searching}>
+                {searching ? <ActivityIndicator color="#fff" size="small" /> : <Text style={styles.searchBtnText}>검색</Text>}
               </TouchableOpacity>
-            )}
-          />
+            </View>
+
+            <FlatList
+              data={results}
+              keyExtractor={(p, i) => `${p.place_name}-${i}`}
+              style={{ maxHeight: 300 }}
+              keyboardShouldPersistTaps="handled"
+              ListEmptyComponent={
+                searched && !searching ? <Text style={styles.empty}>검색 결과가 없습니다.</Text> : null
+              }
+              renderItem={({ item }) => (
+                <TouchableOpacity style={styles.resultRow} onPress={() => handleSelect(item)}>
+                  <Text style={styles.resultName}>{item.place_name}</Text>
+                  <Text style={styles.resultAddress}>{item.road_address_name || item.address_name}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </Pressable>
         </Pressable>
-      </Pressable>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
 
-const createStyles = (theme: Theme) => StyleSheet.create({
+const createStyles = (theme: Theme, safeBottom: number) => StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: theme.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 32, maxHeight: '85%' },
+  sheet: { backgroundColor: theme.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: safeBottom + 20, maxHeight: '85%' },
   title: { color: theme.text, fontSize: 16, fontWeight: '800', marginBottom: 12 },
   searchRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
   input: {

@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { View, Text, Modal, Pressable, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import { useEffect, useState } from 'react';
+import { View, Text, Modal, Pressable, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator, Keyboard } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, Theme } from '../lib/theme';
 
 // 차바타(ChavatarApp)의 30분 단위 오전/오후 슬롯 패턴과 동일 — 08:00~11:30(오전), 12:00~22:00(오후)
@@ -36,9 +37,13 @@ export default function VisitScheduleModal({
   onConfirm: (isoDateTime: string) => void;
 }) {
   const theme = useTheme();
-  const styles = createStyles(theme);
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(theme, insets.bottom);
   const [selDate, setSelDate] = useState<Date | null>(null);
   const [selTime, setSelTime] = useState<string | null>(null);
+
+  // 이전 화면의 입력창 포커스가 남아있으면 키보드가 뜬 채로 열려 확정 버튼을 가림
+  useEffect(() => { if (visible) Keyboard.dismiss(); }, [visible]);
 
   const confirm = () => {
     if (!selDate || !selTime) return;
@@ -119,9 +124,9 @@ export default function VisitScheduleModal({
   );
 }
 
-const createStyles = (theme: Theme) => StyleSheet.create({
+const createStyles = (theme: Theme, safeBottom: number) => StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: theme.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 32, maxHeight: '85%' },
+  sheet: { backgroundColor: theme.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: safeBottom + 20, maxHeight: '85%' },
   title: { color: theme.text, fontSize: 16, fontWeight: '800' },
   sub: { color: theme.textSub, fontSize: 12, marginTop: 4, marginBottom: 16 },
   label: { color: theme.textFaint, fontSize: 11, fontWeight: '700', marginBottom: 8, textTransform: 'uppercase' },

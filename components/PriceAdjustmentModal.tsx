@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { View, Text, Modal, Pressable, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { Text, Modal, Pressable, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme, Theme } from '../lib/theme';
 
 export default function PriceAdjustmentModal({
@@ -14,7 +15,8 @@ export default function PriceAdjustmentModal({
   onConfirm: (amount: number, reason: string) => void;
 }) {
   const theme = useTheme();
-  const styles = createStyles(theme);
+  const insets = useSafeAreaInsets();
+  const styles = createStyles(theme, insets.bottom);
   const [amount, setAmount] = useState('');
   const [reason, setReason] = useState('');
 
@@ -26,7 +28,7 @@ export default function PriceAdjustmentModal({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <Pressable style={styles.overlay} onPress={onClose}>
           <Pressable onPress={() => {}} style={styles.sheet}>
             <Text style={styles.title}>감가 신청</Text>
@@ -66,9 +68,9 @@ export default function PriceAdjustmentModal({
   );
 }
 
-const createStyles = (theme: Theme) => StyleSheet.create({
+const createStyles = (theme: Theme, safeBottom: number) => StyleSheet.create({
   overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: theme.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 32 },
+  sheet: { backgroundColor: theme.card, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: safeBottom + 20 },
   title: { color: theme.text, fontSize: 16, fontWeight: '800' },
   sub: { color: theme.textSub, fontSize: 12, marginTop: 4, marginBottom: 16, lineHeight: 18 },
   label: { color: theme.textFaint, fontSize: 11, fontWeight: '700', marginBottom: 8, textTransform: 'uppercase' },
