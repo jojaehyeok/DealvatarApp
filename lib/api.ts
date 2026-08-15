@@ -110,6 +110,13 @@ export async function fetchMyPartnerInspections(contact: string): Promise<Partne
   return Array.isArray(data) ? data : [];
 }
 
+// 딜러 본인이 (가끔) 스마트옥션에 올린 매물 상태 조회 — cavior 웹 마이페이지와 같은 엔드포인트.
+// 자기 userId로만 조회하는 구조라 딜바타에서도 별도 신규 백엔드 없이 그대로 재사용 가능.
+export async function fetchMyStoreItems(userId: number): Promise<StoreItem[]> {
+  const data = await request(`/admin/store-items/my?userId=${userId}`);
+  return Array.isArray(data) ? data : [];
+}
+
 export interface MyBid {
   id: number;
   storeItemId: number;

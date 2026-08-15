@@ -16,7 +16,8 @@
         "foregroundImage": "./assets/icon.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.jjhst2285.DealvatarApp"
+      "package": "com.jjhst2285.DealvatarApp",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"

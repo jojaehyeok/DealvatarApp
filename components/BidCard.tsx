@@ -43,7 +43,7 @@ export default function BidCard({
   const theme = useTheme();
   const styles = createStyles(theme);
   const item = bid.item;
-  const thumb = item?.photos ? Object.values(item.photos).flat()[0] : undefined;
+  const thumb = item?.photos?.exterior?.[0] ?? Object.values(item?.photos ?? {}).flat()[0];
 
   return (
     <View style={styles.card}>

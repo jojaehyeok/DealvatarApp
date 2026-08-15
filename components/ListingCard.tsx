@@ -14,7 +14,7 @@ function fmtWon(n?: number) {
 export default function ListingCard({ item, onPress }: { item: StoreItem; onPress?: () => void }) {
   const theme = useTheme();
   const styles = createStyles(theme);
-  const thumb = item.photos ? Object.values(item.photos).flat()[0] : undefined;
+  const thumb = item.photos?.exterior?.[0] ?? Object.values(item.photos ?? {}).flat()[0];
   const urgent = isUrgent(item.auctionEndAt);
   const logo = brandLogoUrl(item.titleKo);
 

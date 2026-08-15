@@ -14,7 +14,7 @@ export default function MarketLayout() {
         contentStyle: { backgroundColor: theme.bg },
       }}
     >
-      <Stack.Screen name="index" options={{ title: '경매장' }} />
+      <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="[id]" options={{ title: '매물 상세' }} />
     </Stack>
   );

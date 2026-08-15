@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "909758654495",
+    "project_id": "carvior-57443",
+    "storage_bucket": "carvior-57443.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:909758654495:android:b652bce91bb44d24eb8d2a",
+        "android_client_info": {
+          "package_name": "com.jjhst2285.DealvatarApp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD3XTINpAMjg8pI3hLHDGHlDM1GzcwYD1w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:909758654495:android:b03d7f056a86f057eb8d2a",
+        "android_client_info": {
+          "package_name": "com.rabbitjindan.ChavatarApp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD3XTINpAMjg8pI3hLHDGHlDM1GzcwYD1w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

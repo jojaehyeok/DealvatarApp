@@ -31,22 +31,21 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: '입찰한 물건',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🔨" focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
-        name="won"
-        options={{
-          title: '낙찰한 물건',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🏆" focused={focused} />,
+          href: null, // (tabs) 그룹 기본 경로 유지용 — 실제 내용은 market으로 리다이렉트, 탭바엔 안 보임
         }}
       />
       <Tabs.Screen
         name="partner-inspection"
         options={{
           title: '제휴검차',
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🔧" focused={focused} />,
+          href: null, // 하단 탭에는 안 띄우고 마이 탭 메뉴에서 진입 — 화면 자체는 유지
+        }}
+      />
+      <Tabs.Screen
+        name="my-listings"
+        options={{
+          title: '내 매물 관리',
+          href: null, // 하단 탭에는 안 띄우고 마이 탭 메뉴에서 진입
         }}
       />
       <Tabs.Screen

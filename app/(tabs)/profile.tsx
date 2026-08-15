@@ -94,6 +94,20 @@ export default function ProfileScreen() {
 
       <PenaltyBanner penalties={penalties} />
 
+      <View style={styles.menuBox}>
+        <TouchableOpacity style={styles.menuRow} onPress={() => router.push('/(tabs)/partner-inspection')}>
+          <Text style={styles.menuIcon}>🔧</Text>
+          <Text style={styles.menuLabel}>제휴검차 신청내역</Text>
+          <Text style={styles.menuArrow}>›</Text>
+        </TouchableOpacity>
+        <View style={styles.menuDivider} />
+        <TouchableOpacity style={styles.menuRow} onPress={() => router.push('/(tabs)/my-listings')}>
+          <Text style={styles.menuIcon}>🚗</Text>
+          <Text style={styles.menuLabel}>내 매물 관리</Text>
+          <Text style={styles.menuArrow}>›</Text>
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.ruleBox}>
         <Text style={styles.ruleTitle}>운영 규정</Text>
         <Text style={styles.ruleItem}>· 하루 최대 30건까지 입찰 가능</Text>
@@ -119,6 +133,12 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   avatarEditBadgeText: { color: theme.text, fontSize: 10 },
   name: { color: theme.text, fontSize: 17, fontWeight: '800' },
   email: { color: theme.textSub, fontSize: 13, marginTop: 2 },
+  menuBox: { backgroundColor: theme.card, borderRadius: 14, marginTop: 8, borderWidth: 1, borderColor: theme.cardBorder, overflow: 'hidden' },
+  menuRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 15, paddingHorizontal: 16, gap: 10 },
+  menuIcon: { fontSize: 16 },
+  menuLabel: { color: theme.text, fontSize: 14, fontWeight: '700', flex: 1 },
+  menuArrow: { color: theme.textFaint, fontSize: 18 },
+  menuDivider: { height: 1, backgroundColor: theme.divider, marginLeft: 16 },
   ruleBox: { backgroundColor: theme.card, borderRadius: 14, padding: 16, marginTop: 8, borderWidth: 1, borderColor: theme.cardBorder },
   ruleTitle: { color: theme.text, fontWeight: '800', fontSize: 13, marginBottom: 8 },
   ruleItem: { color: theme.textSub, fontSize: 12, marginTop: 4, lineHeight: 18 },
