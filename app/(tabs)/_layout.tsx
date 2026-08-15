@@ -43,6 +43,13 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="partner-inspection"
+        options={{
+          title: '제휴검차',
+          tabBarIcon: ({ focused }) => <TabIcon emoji="🔧" focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: '마이',

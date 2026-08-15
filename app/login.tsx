@@ -68,6 +68,10 @@ export default function LoginScreen() {
       </TouchableOpacity>
 
       <Text style={styles.footNote}>카비어 딜러 승인 계정으로 로그인해주세요.</Text>
+
+      <TouchableOpacity onPress={() => router.push('/register')}>
+        <Text style={styles.registerLink}>딜러 회원가입</Text>
+      </TouchableOpacity>
     </KeyboardAvoidingView>
   );
 }
@@ -86,4 +90,5 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   testButton: { borderRadius: 14, paddingVertical: 14, alignItems: 'center', marginTop: 10, borderWidth: 1, borderColor: theme.cardBorder },
   testButtonText: { color: theme.accentSoft, fontWeight: '700', fontSize: 13 },
   footNote: { color: theme.textFaint, fontSize: 12, textAlign: 'center', marginTop: 20 },
+  registerLink: { color: theme.accentSoft, fontSize: 13, fontWeight: '700', textAlign: 'center', marginTop: 16 },
 });

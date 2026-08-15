@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { loadUser, clearUser, fetchPenaltyStatus, DealerUser, DealerPenalty } from '../../lib/api';
+import * as ImagePicker from 'expo-image-picker';
+import { loadUser, saveUser, clearUser, fetchPenaltyStatus, uploadFile, updateProfileImage, DealerUser, DealerPenalty } from '../../lib/api';
 import PenaltyBanner from '../../components/PenaltyBanner';
 import { useTheme, Theme } from '../../lib/theme';
 
@@ -12,6 +13,7 @@ export default function ProfileScreen() {
   const [user, setUser] = useState<DealerUser | null>(null);
   const [penalties, setPenalties] = useState<DealerPenalty[]>([]);
   const [loading, setLoading] = useState(true);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -34,6 +36,35 @@ export default function ProfileScreen() {
     router.replace('/login');
   };
 
+  const handlePickPhoto = async () => {
+    if (!user) return;
+    const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!perm.granted) {
+      Alert.alert('권한 필요', '사진첩 접근 권한을 허용해주세요.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+    });
+    if (result.canceled || !result.assets?.[0]) return;
+
+    setUploadingPhoto(true);
+    try {
+      const url = await uploadFile(result.assets[0].uri, '/users/upload-doc');
+      await updateProfileImage(user.id, url);
+      const updated = { ...user, profileImage: url };
+      setUser(updated);
+      await saveUser(updated);
+    } catch (e: any) {
+      Alert.alert('업로드 실패', e.message);
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.center}>
@@ -45,9 +76,18 @@ export default function ProfileScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.profileBox}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{user?.name?.[0] ?? '?'}</Text>
-        </View>
+        <TouchableOpacity style={styles.avatar} onPress={handlePickPhoto} disabled={uploadingPhoto}>
+          {uploadingPhoto ? (
+            <ActivityIndicator color="#fff" />
+          ) : user?.profileImage ? (
+            <Image source={{ uri: user.profileImage }} style={styles.avatarImg} />
+          ) : (
+            <Text style={styles.avatarText}>{user?.name?.[0] ?? '?'}</Text>
+          )}
+          <View style={styles.avatarEditBadge}>
+            <Text style={styles.avatarEditBadgeText}>✎</Text>
+          </View>
+        </TouchableOpacity>
         <Text style={styles.name}>{user?.name}</Text>
         <Text style={styles.email}>{user?.email}</Text>
       </View>
@@ -72,8 +112,11 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   container: { flex: 1, backgroundColor: theme.bg, padding: 20 },
   center: { flex: 1, backgroundColor: theme.bg, alignItems: 'center', justifyContent: 'center' },
   profileBox: { alignItems: 'center', marginVertical: 24 },
-  avatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: theme.accent, alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
+  avatar: { width: 64, height: 64, borderRadius: 32, backgroundColor: theme.accent, alignItems: 'center', justifyContent: 'center', marginBottom: 10, overflow: 'hidden' },
+  avatarImg: { width: '100%', height: '100%' },
   avatarText: { color: '#fff', fontSize: 24, fontWeight: '900' },
+  avatarEditBadge: { position: 'absolute', bottom: 0, right: 0, width: 20, height: 20, borderRadius: 10, backgroundColor: theme.card, borderWidth: 1, borderColor: theme.cardBorder, alignItems: 'center', justifyContent: 'center' },
+  avatarEditBadgeText: { color: theme.text, fontSize: 10 },
   name: { color: theme.text, fontSize: 17, fontWeight: '800' },
   email: { color: theme.textSub, fontSize: 13, marginTop: 2 },
   ruleBox: { backgroundColor: theme.card, borderRadius: 14, padding: 16, marginTop: 8, borderWidth: 1, borderColor: theme.cardBorder },

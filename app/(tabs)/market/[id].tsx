@@ -6,6 +6,8 @@ import {
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { fetchStoreItem, fetchItemBids, submitBid, loadUser, StoreItem, ItemBid, DealerUser } from '../../../lib/api';
 import { useTheme, Theme } from '../../../lib/theme';
+import { isUrgent } from '../../../lib/auctionTiming';
+import CountdownTimer from '../../../components/CountdownTimer';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -15,21 +17,13 @@ function fmtWon(n?: number) {
   return `${Math.round(n / 10_000).toLocaleString()}만원`;
 }
 
-function fmtTimeLeft(auctionEndAt: string | null) {
-  if (!auctionEndAt) return null;
-  const diff = new Date(auctionEndAt).getTime() - Date.now();
-  if (diff <= 0) return '마감';
-  const h = Math.floor(diff / 3_600_000);
-  const m = Math.floor((diff % 3_600_000) / 60_000);
-  return h > 0 ? `${h}시간 ${m}분 남음` : `${m}분 남음`;
-}
-
 export default function ItemDetailScreen() {
   const theme = useTheme();
   const styles = createStyles(theme);
   const { id } = useLocalSearchParams<{ id: string }>();
   const [item, setItem] = useState<StoreItem | null>(null);
-  const [bids, setBids] = useState<ItemBid[]>([]);
+  const [bidCount, setBidCount] = useState(0);
+  const [myBids, setMyBids] = useState<ItemBid[]>([]);
   const [user, setUser] = useState<DealerUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [activePhoto, setActivePhoto] = useState(0);
@@ -39,13 +33,14 @@ export default function ItemDetailScreen() {
   const load = useCallback(async () => {
     if (!id) return;
     try {
-      const [itemData, bidData, u] = await Promise.all([
+      const u = await loadUser();
+      const [itemData, bidData] = await Promise.all([
         fetchStoreItem(Number(id)),
-        fetchItemBids(Number(id)),
-        loadUser(),
+        fetchItemBids(Number(id), u?.id),
       ]);
       setItem(itemData);
-      setBids(bidData);
+      setBidCount(bidData.count);
+      setMyBids(bidData.myBids);
       setUser(u);
     } catch {
       // 조용히 실패 — 데모 단계
@@ -93,7 +88,7 @@ export default function ItemDetailScreen() {
     { label: '색상', value: item.colorKo || '-' },
     { label: '사고유무', value: item.accident ? '사고 있음' : '무사고' },
   ];
-  const timeLeft = fmtTimeLeft(item.auctionEndAt);
+  const urgent = !!item.auctionEndAt && isUrgent(item.auctionEndAt);
   const closed = item.status !== 'active';
 
   return (
@@ -124,12 +119,21 @@ export default function ItemDetailScreen() {
         </View>
 
         <View style={styles.body}>
+          {urgent && !closed && (
+            <View style={styles.urgentBadge}>
+              <Text style={styles.urgentBadgeText}>🔥 마감임박</Text>
+            </View>
+          )}
           <Text style={styles.title}>{item.titleKo}</Text>
           <Text style={styles.carNumber}>{item.carNumber}</Text>
 
           <View style={styles.priceRow}>
             <Text style={styles.price}>{fmtWon(item.priceKRW)}</Text>
-            {timeLeft && <Text style={[styles.timeLeft, closed && { color: theme.textFaint }]}>{closed ? '경매 마감' : timeLeft}</Text>}
+            {closed ? (
+              <Text style={[styles.timeLeft, { color: theme.textFaint }]}>경매 마감</Text>
+            ) : (
+              <CountdownTimer endAt={item.auctionEndAt} style={[styles.timeLeft, urgent && styles.timeLeftUrgent]} />
+            )}
           </View>
 
           {/* 스펙 */}
@@ -143,17 +147,22 @@ export default function ItemDetailScreen() {
           </View>
 
           {/* 입찰 내역 */}
-          <Text style={styles.sectionTitle}>입찰 내역 ({bids.length})</Text>
+          <Text style={styles.sectionTitle}>입찰 현황</Text>
           <View style={styles.bidsBox}>
-            {bids.length === 0 ? (
+            {bidCount === 0 ? (
               <Text style={styles.empty}>아직 입찰이 없습니다.</Text>
             ) : (
-              bids.map((b) => (
-                <View key={b.id} style={styles.bidRow}>
-                  <Text style={styles.bidDealer}>{b.dealerName}</Text>
-                  <Text style={styles.bidAmount}>{fmtWon(b.amount)}</Text>
-                </View>
-              ))
+              <Text style={styles.bidSummary}>🔨 총 {bidCount}명 입찰 중 (다른 딜러의 입찰가는 공개되지 않습니다)</Text>
+            )}
+            {myBids.length > 0 && (
+              <View style={styles.myBidsBlock}>
+                {myBids.map((b) => (
+                  <View key={b.id} style={styles.bidRow}>
+                    <Text style={styles.bidDealer}>내 입찰</Text>
+                    <Text style={styles.bidAmount}>{fmtWon(b.amount)}</Text>
+                  </View>
+                ))}
+              </View>
             )}
           </View>
 
@@ -192,11 +201,14 @@ const createStyles = (theme: Theme) => StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10,
   },
   body: { padding: 16 },
+  urgentBadge: { alignSelf: 'flex-start', backgroundColor: theme.danger, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, marginBottom: 8 },
+  urgentBadgeText: { color: '#fff', fontSize: 11, fontWeight: '800' },
   title: { color: theme.text, fontWeight: '800', fontSize: 18 },
   carNumber: { color: theme.textSub, fontSize: 13, marginTop: 2 },
   priceRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 14, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: theme.divider },
   price: { color: theme.accentSoft, fontWeight: '800', fontSize: 22 },
   timeLeft: { color: theme.danger, fontSize: 12, fontWeight: '700' },
+  timeLeftUrgent: { fontSize: 13, fontWeight: '900' },
   specBox: { marginTop: 16 },
   specRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: theme.divider },
   specLabel: { color: theme.textSub, fontSize: 13 },
@@ -204,6 +216,8 @@ const createStyles = (theme: Theme) => StyleSheet.create({
   sectionTitle: { color: theme.text, fontWeight: '800', fontSize: 14, marginTop: 24, marginBottom: 8 },
   bidsBox: { backgroundColor: theme.card, borderRadius: 12, borderWidth: 1, borderColor: theme.cardBorder, padding: 12 },
   empty: { color: theme.textFaint, fontSize: 12, textAlign: 'center', paddingVertical: 8 },
+  bidSummary: { color: theme.textSub, fontSize: 12, fontWeight: '600' },
+  myBidsBlock: { marginTop: 8, borderTopWidth: 1, borderTopColor: theme.divider, paddingTop: 8 },
   bidRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 },
   bidDealer: { color: theme.textSub, fontSize: 13 },
   bidAmount: { color: theme.text, fontSize: 13, fontWeight: '700' },

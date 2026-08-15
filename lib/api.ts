@@ -10,6 +10,8 @@ export interface DealerUser {
   name: string;
   role: string;
   dealerStatus?: string;
+  phone?: string | null;
+  profileImage?: string | null;
 }
 
 const USER_KEY = 'dealvatar_user';
@@ -49,6 +51,65 @@ export async function login(email: string, password: string): Promise<DealerUser
   return data;
 }
 
+export interface DealerRegisterData {
+  email: string;
+  password: string;
+  name: string;
+  phone?: string;
+  dealerLicenseUrl: string;
+  businessRegUrl?: string;
+  businessNumber?: string;
+  companyName?: string;
+}
+
+export async function registerDealer(data: DealerRegisterData): Promise<DealerUser> {
+  return request('/users/register', {
+    method: 'POST',
+    body: JSON.stringify({ ...data, role: 'dealer' }),
+  });
+}
+
+// 승인대기 화면에서 최신 dealerStatus만 다시 확인할 때 사용 — 로그인 재시도 없이 갱신.
+export async function fetchUserByEmail(email: string): Promise<DealerUser> {
+  return request(`/users/by-email?email=${encodeURIComponent(email)}`);
+}
+
+const PARTNER_INSPECTION_SOURCE = 'DEALER_PARTNER_INSPECTION';
+
+export interface PartnerInspectionRequest {
+  id: number;
+  status: string;
+  carNumber: string;
+  carModel?: string | null;
+  address: string;
+  detailAddress?: string | null;
+  preferredDateTime: string;
+  listingUrl?: string | null;
+  createdAt: string;
+}
+
+// 딜러가 개인적으로 사려는 차량을 카비어 검차에 신청 — 일반 구매동행(/inspection)과 같은
+// 접수 엔드포인트를 쓰되 source로 딜러 신청 건임을 구분한다.
+export function submitPartnerInspection(data: {
+  carNumber: string;
+  carModel?: string;
+  contact: string;
+  address: string;
+  detailAddress?: string;
+  preferredDateTime: string;
+  listingUrl?: string;
+}) {
+  return request('/external/request', {
+    method: 'POST',
+    body: JSON.stringify({ ...data, source: PARTNER_INSPECTION_SOURCE, privacyAgreed: true }),
+  });
+}
+
+export async function fetchMyPartnerInspections(contact: string): Promise<PartnerInspectionRequest[]> {
+  const data = await request(`/external/request/list?source=${PARTNER_INSPECTION_SOURCE}&contact=${encodeURIComponent(contact)}`);
+  return Array.isArray(data) ? data : [];
+}
+
 export interface MyBid {
   id: number;
   storeItemId: number;
@@ -63,6 +124,10 @@ export interface MyBid {
     status: string;
     priceKRW: number;
     auctionEndAt: string | null;
+    visitScheduledAt: string | null;
+    priceAdjustmentAmount: number | null;
+    priceAdjustmentReason: string | null;
+    priceAdjustmentConfirmed: boolean;
   } | null;
 }
 
@@ -109,6 +174,10 @@ export interface StoreItem {
   options?: string[];
   status: string;
   auctionEndAt: string | null;
+  visitScheduledAt?: string | null;
+  priceAdjustmentAmount?: number | null;
+  priceAdjustmentReason?: string | null;
+  priceAdjustmentConfirmed?: boolean;
 }
 
 export interface ItemBid {
@@ -127,8 +196,10 @@ export function fetchStoreItem(id: number): Promise<StoreItem> {
   return request(`/external/store-items/${id}`);
 }
 
-export function fetchItemBids(id: number): Promise<ItemBid[]> {
-  return request(`/external/store-items/${id}/bids`);
+// 다른 딜러의 입찰 금액/이름은 절대 안 내려줌(경쟁입찰 담합 방지) — 총 인원수 + 내 입찰만.
+export function fetchItemBids(id: number, dealerId?: number): Promise<{ count: number; myBids: ItemBid[] }> {
+  const qs = dealerId != null ? `?dealerId=${dealerId}` : '';
+  return request(`/external/store-items/${id}/bids${qs}`);
 }
 
 export function submitBid(storeItemId: number, dealerId: number, dealerName: string, amount: number) {
@@ -136,4 +207,48 @@ export function submitBid(storeItemId: number, dealerId: number, dealerName: str
     method: 'POST',
     body: JSON.stringify({ dealerId, dealerName, amount }),
   });
+}
+
+export function scheduleVisit(storeItemId: number, dealerId: number, visitScheduledAt: string) {
+  return request(`/external/store-items/${storeItemId}/visit-schedule`, {
+    method: 'PATCH',
+    body: JSON.stringify({ dealerId, visitScheduledAt }),
+  });
+}
+
+export function requestPriceAdjustment(storeItemId: number, dealerId: number, amount: number, reason: string) {
+  return request(`/external/store-items/${storeItemId}/price-adjustment`, {
+    method: 'PATCH',
+    body: JSON.stringify({ dealerId, amount, reason }),
+  });
+}
+
+export function updatePushToken(userId: number, pushToken: string) {
+  return request(`/users/${userId}/push-token`, {
+    method: 'PATCH',
+    body: JSON.stringify({ pushToken }),
+  });
+}
+
+export function updateProfileImage(userId: number, profileImage: string) {
+  return request(`/users/${userId}/admin-info`, {
+    method: 'PATCH',
+    body: JSON.stringify({ profileImage }),
+  });
+}
+
+// 라이선스/프로필 사진 등 파일 업로드 공용 함수 — ChavatarApp의 FormData 업로드 패턴과 동일.
+export async function uploadFile(uri: string, endpoint: '/users/upload-doc' | '/users/upload-logo' = '/users/upload-doc'): Promise<string> {
+  const formData = new FormData();
+  const filename = uri.split('/').pop() || 'upload.jpg';
+  const ext = filename.split('.').pop()?.toLowerCase() || 'jpg';
+  formData.append('file', { uri, name: filename, type: `image/${ext === 'jpg' ? 'jpeg' : ext}` } as any);
+  const res = await fetch(`${API_BASE}${endpoint}`, {
+    method: 'POST',
+    headers: { 'x-internal-key': INTERNAL_KEY },
+    body: formData,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data?.message || '업로드에 실패했습니다.');
+  return data.url;
 }
